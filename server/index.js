@@ -114,7 +114,13 @@ app.post("/api/*", (req,res)=>{
                         fs.writeFileSync(`${studentsFolder}/${file}`, JSON.stringify(student, null, 2));
                     })
                 });
-                res.json(assignment);
+                if(req.query.redirect === "true"){
+                    res.redirect("/assignments")
+                }else{
+                    res.status(200);
+                    res.json(assignment);
+                }
+                
             }else{
                 res.sendStatus(400);
             }
@@ -137,7 +143,11 @@ app.post("/api/*", (req,res)=>{
                             student.grades[file.split(".")[0]] = null;
                         });
                         fs.writeFileSync(`${studentsFolder}/${req.body.id}.json`, JSON.stringify(student, null, 2));
-                        res.sendStatus(200);
+                        if(req.query.redirect === "true"){
+                            res.redirect("/students");
+                        }else{
+                            res.sendStatus(200);
+                        };                        
                     });
                 }
                 
@@ -147,6 +157,7 @@ app.post("/api/*", (req,res)=>{
         }
         break;
         case "grade": {
+            setTimeout(() => {
                 if (req.body.student && req.body.assignment && req.body.grade) {
                     //Check that the student exists
                     const students = new Map();
@@ -193,6 +204,8 @@ app.post("/api/*", (req,res)=>{
                 } else {
                     res.sendStatus(400);
                 }
+            }, 1000 * Math.random());
+                
             }
             break;
             default:
@@ -201,10 +214,163 @@ app.post("/api/*", (req,res)=>{
     }
 });
 
+app.delete("/api/*", (req,res)=>{
+    const path = req.path.slice(5);
+    switch (path) {
+        case "student": {
+            if (req.body.id){
+                //Check that the student exists
+                const students = new Map();
+                fs.readdir(studentsFolder, (err, files) => {
+                    files.forEach(file => {
+                        let student = JSON.parse(fs.readFileSync(`${studentsFolder}/${file}`).toString());
+                        students.set(student.id, student);
+                    });
+                    if (students.has(req.body.id)) {
+                        fs.rm(`${studentsFolder}/${req.body.id}.json`, (err) => {
+                            if (err) {
+                                res.sendStatus(500);
+                            } else {
+                                res.sendStatus(200);
+                            }
+                        });
+                    }else{
+                        res.sendStatus(404);
+                    }
+                });
+            }else{
+                res.sendStatus(400);
+            }
+        }break;
+        case "assignment": {
+            if (req.body.id) {
+                //Check that the assignment exists
+                const assignments = new Map();
+                fs.readdir(assignmentsFolder, (err, files) => {
+                    files.forEach(file => {
+                        let assignment = JSON.parse(fs.readFileSync(`${assignmentsFolder}/${file}`).toString());
+                        assignments.set(assignment.id, assignment);
+                    });
+                    if (assignments.has(req.body.id)) {
+                        fs.rm(`${assignmentsFolder}/${req.body.id}.json`, (err) => {
+                            if (err) {
+                                
+                                res.sendStatus(500);
+                            } else {
+                                fs.readdir(studentsFolder, (err, files) => {
+                                    files.forEach(file => {
+                                        let student = JSON.parse(fs.readFileSync(`${studentsFolder}/${file}`).toString());
+                                        delete student.grades[req.body.id];
+                                        fs.writeFileSync(`${studentsFolder}/${file}`, JSON.stringify(student, null, 2));
+                                    })
+                                });
+                                res.sendStatus(200);
+                            }
+                        });
+                    } else {
+                        res.sendStatus(404);
+                    }
+                });
+            } else {
+                res.sendStatus(400);
+            }
+        } break;
+    }
+})
+
 app.get("*", (req,res)=>{
     switch(req.path){
-        case "/": {
-            res.render("index");
+        case "/": 
+        case "/students":{
+            res.render("students");
         }break;
+        case "/assignments": {
+            //Check if the weightings of all assignments add up to 1 (100%)
+            let totalWeighting = 0;
+            fs.readdir(assignmentsFolder, (err, files) => {
+                files.forEach(file =>{
+                    const assignment = JSON.parse(fs.readFileSync(`${assignmentsFolder}/${file}`).toString());
+                    totalWeighting += assignment.weighting;
+                });
+                res.render("assignments", {
+                    totalWeighting: totalWeighting
+                });
+            });
+        }break;
+        case "/grades": {
+            const students = new Map();
+            const assignments = new Map();
+            fs.readdir(studentsFolder, (err, files) => {
+                files.forEach(file => {
+                    const student = JSON.parse(fs.readFileSync(`${studentsFolder}/${file}`).toString());
+                    students.set(student.id, student);
+                });
+                fs.readdir(assignmentsFolder, (err, files) => {
+                    files.forEach(file => {
+                        const assignment = JSON.parse(fs.readFileSync(`${assignmentsFolder}/${file}`).toString());
+                        assignments.set(assignment.id, assignment);
+                    });
+                    let totalWeighting = 0;
+                    fs.readdir(assignmentsFolder, (err, files) => {
+                        files.forEach(file => {
+                            const assignment = JSON.parse(fs.readFileSync(`${assignmentsFolder}/${file}`).toString());
+                            totalWeighting += assignment.weighting;
+                        });
+                        res.render("grades", {
+                            students, assignments, totalWeighting
+                        });
+                    });
+                    
+                });
+            });            
+        }break;
+        case "/studentGrade":
+            if(req.query.id){
+                const students = new Map();
+                const assignments = new Map();
+                fs.readdir(studentsFolder, (err, files) => {
+                    files.forEach(file => {
+                        let student = JSON.parse(fs.readFileSync(`${studentsFolder}/${file}`).toString());
+                        students.set(student.id, student);
+                    });
+                    if(students.has(req.query.id)){
+                        fs.readdir(assignmentsFolder, (err, files) => {
+                        files.forEach(file => {
+                            let assignment = JSON.parse(fs.readFileSync(`${assignmentsFolder}/${file}`).toString());
+                            assignments.set(assignment.id, assignment);
+                        });
+
+                        //Calculate the final grade for each student
+                        const student = students.get(req.query.id);
+                        let finalGrade = 0;
+                        for (let assignment in student.grades) {
+                            if (student.grades[assignment] === null) {
+                                student.grades[assignment] = 0;
+                            }
+                            finalGrade += (student.grades[assignment] / assignments.get(assignment).maxScore) * assignments.get(assignment).weighting;
+                        }
+                        finalGrade *= 100;
+                        student.finalGrade = finalGrade;
+                        student.letterGrade = finalGrade >= 85 ? "A" : finalGrade >= 75 ? "B" : finalGrade >= 55 ? "C" : finalGrade >= 45 ? "D" : finalGrade >= 30 ? "E" : "F";
+                        students.set(student.id, student);
+                        let submission = {};
+                        students.forEach(student => {
+                            submission[student.id] = student;
+                        });
+                        res.status(200);
+                        res.send(`Student ${student.name} (${student.id}) has a global grade of ${student.letterGrade} (${student.finalGrade}%). <a href="#" onclick='window.history.back()'>Go Back</a>`);
+                    });
+                    }else{
+                        res.sendStatus(404);
+                    }
+                    
+                });
+            }else{
+                res.sendStatus(400);
+            }
+            break;
+        default:
+            res.status(404);
+            res.send("Page not found.")
     }
 })

@@ -102,3 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+
+data/assignments/*.json
+data/students/*.json

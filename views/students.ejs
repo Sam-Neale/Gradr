@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradr</title>
+    <%- include('includes/head.ejs') %>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary shadow">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Gradr</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/students">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/assignments">Assignments</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/grades">Grades</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="mt-5 px-3">
+        <h1 class="fw-bold">Students <button class="btn btn-primary d-inline-block w-md-auto my-2 my-md-0"
+                data-bs-toggle="modal" data-bs-target="#newStudent"><i class="bi bi-plus-circle-fill"></i> Add
+                Student</button><!-- <button class="btn btn-dark ms-1 ms-md-2 d-inline-block w-md-auto my-2 my-md-0"
+                                data-bs-toggle="modal" data-bs-target="#importStudent"><i class="bi bi-filetype-csv"></i>
+                                Use Importer</button> --></h1>
+        <div class="modal fade text-dark" id="importStudent" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="/api/students/import" encType="multipart/form-data" method="POST" class="needs-validation"
+                    novalidate>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Import New Students</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <h2 class="fw-bold">Download Template</h2>
+                            <a class="btn btn-dark w-100 mb-2" download href='/public/import/students.csv'><i
+                                    class="bi bi-filetype-csv"></i> Download Template</a><br><br>
+                            <h2 class="fw-bold">Submit Your Version</h2>
+                            <input type="file" accept=".csv" name="file" class="form-control">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal fade text-dark" id="newStudent" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="/api/students?redirect=true" method="POST" class="needs-validation" novalidate>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Create New Student</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <h2 class="fw-bold">New Student</h2>
+                            <div class="row row-cols-1">
+                                <div class="col mb-4">
+                                    <label for="studentName" class="form-label">Student Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Need a valid student name.
+                                    </div>
+                                </div>
+                                <div class="col mb-4">
+                                    <label for="number" class="form-label">Student Number</label>
+                                    <input type="text" class="form-control" id="number" name="id" required>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Need a valid student number.
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Create</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="wrapper"></div>
+    </div>
+    <script src="/public/js/students.js"></script>
+</body>
+</html>
