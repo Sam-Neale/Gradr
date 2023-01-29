@@ -1,0 +1,27 @@
+{
+  "name": "gradr",
+  "version": "1.0.0",
+  "description": "Gradr is an open source grade management application for teachers.",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "nodemon server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sam-Neale/Gradr.git"
+  },
+  "keywords": [
+    "gradr"
+  ],
+  "author": "Sam Neale",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sam-Neale/Gradr/issues"
+  },
+  "homepage": "https://github.com/Sam-Neale/Gradr#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2"
+  }
+}
