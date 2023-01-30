@@ -214,6 +214,29 @@ app.post("/api/*", (req,res)=>{
     }
 });
 
+app.put("/api/*", (req,res)=>{
+    const path = req.path.slice(5);
+    switch (path) {
+        case "student/name":
+            if(req.body.id && req.body.name){
+                if(fs.existsSync(`${studentsFolder}/${req.body.id.toString()}.json`)){
+                    const student = JSON.parse(fs.readFileSync(`${studentsFolder}/${req.body.id.toString()}.json`).toString());
+                    student.name = req.body.name.toString();
+                    fs.writeFileSync(`${studentsFolder}/${req.body.id.toString()}.json`, JSON.stringify(student, null, 2));
+                    res.sendStatus(200);
+                }else{
+                    res.status(404);
+                    res.send("Student not found");
+                }
+            }else{
+                res.sendStatus(400);
+            }
+            break;
+        default:
+            res.sendStatus(404);
+    }
+})
+
 app.delete("/api/*", (req,res)=>{
     const path = req.path.slice(5);
     switch (path) {

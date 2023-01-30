@@ -4,6 +4,9 @@ const grid = new gridjs.Grid({
         sort: { enabled: false },
         formatter: (cell, row) => {
             return [gridjs.h('button', {
+                className: 'btn btn-primary m-2',
+                onClick: () => renameStudent(row.cells[0].data)
+            }, `Rename`), gridjs.h('button', {
                 className: 'btn btn-danger m-2',
                 onClick: () => deleteStudent(row.cells[0].data)
             }, `Remove`)];
@@ -88,3 +91,35 @@ function deleteStudent(number) {
             }, false)
         })
 })();
+
+function renameStudent(id){
+    const newName = prompt(`Enter the new name for student ${id}`);
+    if (newName === null) {
+        return;
+    }else{
+        const data = JSON.stringify({
+            "name": newName,
+            "id": id
+        });
+
+        const xhr = new XMLHttpRequest();
+        xhr.withCredentials = true;
+
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === this.DONE) {
+                if(this.status == 200){
+                    console.log("Student renamed successfully");
+                    grid.forceRender();
+                }else{
+                    alert("Failed to rename student");
+                    console.error([this.status, this.statusText]);
+                }
+            }
+        });
+
+        xhr.open("PUT", "/api/student/name");
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        xhr.send(data);
+    }
+}
