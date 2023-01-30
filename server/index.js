@@ -298,6 +298,9 @@ app.delete("/api/*", (req,res)=>{
                 res.sendStatus(400);
             }
         } break;
+        default:
+            res.sendStatus(404);
+            break;
     }
 })
 
